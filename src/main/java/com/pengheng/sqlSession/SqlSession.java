@@ -1,5 +1,7 @@
 package com.pengheng.sqlSession;
 
+import com.pengheng.pojo.MappedStatement;
+
 import java.sql.SQLException;
 import java.util.List;
 
@@ -11,11 +13,14 @@ import java.util.List;
  */
 public interface SqlSession {
 
+    //增删改操作调用接口
+    int update(MappedStatement mappedStatement, Object... params) throws Exception;
+
     //查询所有
-    <E> List<E> selectList(String statementId, Object... params) throws Exception;
+    <E> List<E> selectList(MappedStatement mappedStatement, Object... params) throws Exception;
 
     //查询单个
-    <E> E selectOne(String statementId, Object... params) throws Exception;
+    <E> E selectOne(MappedStatement mappedStatement, Object... params) throws Exception;
 
     //查询单个
     <E> E getMapper(Class<?> clazz);

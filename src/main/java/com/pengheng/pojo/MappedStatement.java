@@ -8,13 +8,30 @@ package com.pengheng.pojo;
  */
 public class MappedStatement {
 
+    /**
+     * 执行XML方法id
+     */
     private String id;
 
+    /**
+     * 返回参数
+     */
     private String resultType;
 
+    /**
+     * 请求参数
+     */
     private String parameterType;
 
+    /**
+     * 执行SQL
+     */
     private String sql;
+
+    /**
+     * 执行类型
+     */
+    private SqlCommandType commandType;
 
     public String getId() {
         return id;
@@ -46,5 +63,13 @@ public class MappedStatement {
 
     public void setSql(String sql) {
         this.sql = sql;
+    }
+
+    public SqlCommandType getCommandType() {
+        return commandType;
+    }
+
+    public void setCommandType(SqlCommandType commandType) {
+        this.commandType = commandType;
     }
 }

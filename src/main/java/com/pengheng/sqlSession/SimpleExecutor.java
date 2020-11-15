@@ -6,8 +6,10 @@ import com.pengheng.utils.GenericTokenParser;
 import com.pengheng.utils.ParameterMapping;
 import com.pengheng.utils.ParameterMappingTokenHandler;
 
+import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.*;
 import java.util.ArrayList;
@@ -22,6 +24,27 @@ import java.util.List;
 public class SimpleExecutor implements Executor {
     @Override
     public <E> List<E> query(Configuration configuration, MappedStatement mappedStatement, Object... params) throws Exception {
+        //1. 获取数据库连接
+        PreparedStatement preparedStatement = setPrepareStatementInfo(configuration, mappedStatement, params);
+        //5. 执行SQL
+        ResultSet resultSet = preparedStatement.executeQuery();
+        //6. 封装返回
+        String resultType = mappedStatement.getResultType();
+        Class<?> resultTypeClass = getClassType(resultType);
+        ArrayList<Object> objects = new ArrayList<>();
+        setResultInfo(resultSet, resultTypeClass, objects);
+        return (List<E>) objects;
+    }
+
+    @Override
+    public int update(Configuration configuration, MappedStatement mappedStatement, Object... params) throws Exception {
+        PreparedStatement preparedStatement = setPrepareStatementInfo(configuration, mappedStatement, params[0]);
+        //5. 执行SQL
+        int i = preparedStatement.executeUpdate();
+        return i;
+    }
+
+    private PreparedStatement setPrepareStatementInfo(Configuration configuration, MappedStatement mappedStatement, Object param) throws SQLException, ClassNotFoundException, NoSuchFieldException, IllegalAccessException {
         //1. 获取数据库连接
         Connection connection = configuration.getDataSource().getConnection();
         //2. 获取SQL语句 转换占位符#{}   select * from user where id = #{id} and user = #{name}
@@ -41,15 +64,13 @@ public class SimpleExecutor implements Executor {
             //使用反射通过content中的名称获取实体对象中的属性值
             Field declaredField = parameterTypeClass.getDeclaredField(content);
             declaredField.setAccessible(true);
-            Object o = declaredField.get(params[0]);
+            Object o = declaredField.get(param);
             preparedStatement.setObject(i + 1, o);
         }
-        //5. 执行SQL
-        ResultSet resultSet = preparedStatement.executeQuery();
-        //6. 封装返回
-        String resultType = mappedStatement.getResultType();
-        Class<?> resultTypeClass = getClassType(resultType);
-        ArrayList<Object> objects = new ArrayList<>();
+        return preparedStatement;
+    }
+
+    private void setResultInfo(ResultSet resultSet, Class<?> resultTypeClass, ArrayList<Object> objects) throws SQLException, InstantiationException, IllegalAccessException, IntrospectionException, InvocationTargetException {
         while (resultSet.next()) {
             Object o = resultTypeClass.newInstance();
             ResultSetMetaData metaData = resultSet.getMetaData();
@@ -66,7 +87,6 @@ public class SimpleExecutor implements Executor {
             }
             objects.add(o);
         }
-        return (List<E>) objects;
     }
 
     private Class<?> getClassType(String parameterType) throws ClassNotFoundException {

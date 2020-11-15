@@ -3,6 +3,7 @@ package com.pengheng.config;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import com.pengheng.io.Resource;
 import com.pengheng.pojo.Configuration;
+import org.apache.commons.dbcp2.BasicDataSource;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -47,13 +48,20 @@ public class XMLConfigBuilder {
             properties.setProperty(name, value);
         }
 
-        //数据库存放成功
         ComboPooledDataSource comboPooledDataSource = new ComboPooledDataSource();
         comboPooledDataSource.setDriverClass(properties.getProperty("driverClass"));
         comboPooledDataSource.setJdbcUrl(properties.getProperty("jdbcUrl"));
         comboPooledDataSource.setUser(properties.getProperty("username"));
         comboPooledDataSource.setPassword(properties.getProperty("password"));
-        configuration.setDataSource(comboPooledDataSource);
+//        configuration.setDataSource(comboPooledDataSource);
+
+        //数据库存放成功
+        BasicDataSource basicDataSource = new BasicDataSource();
+        basicDataSource.setDriverClassName(properties.getProperty("driverClass"));
+        basicDataSource.setUrl(properties.getProperty("jdbcUrl"));
+        basicDataSource.setUsername(properties.getProperty("username"));
+        basicDataSource.setPassword(properties.getProperty("password"));
+        configuration.setDataSource(basicDataSource);
 
         //mapper.xml 解析
         List<Element> mapperList = rootElement.selectNodes("//mapper");
